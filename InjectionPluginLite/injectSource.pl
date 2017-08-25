@@ -14,6 +14,7 @@ use FindBin;
 use lib $FindBin::Bin;
 use JSON::PP;
 use common;
+use Cwd;
 
 my $compileHighlight = "{\\colortbl;\\red0\\green0\\blue0;\\red160\\green255\\blue160;}\\cb2\\i1";
 my $errorHighlight = "{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue130;}\\cb2";
@@ -257,12 +258,18 @@ if ( !$learnt ) {
                 }
             }
             else {
+                my $cdLine;
                 while ( my $line = <LOG> ) {
+                    if (index( $line, "cd /" ) != -1){
+                        $cdLine = $line;
+                        next;
+                    }
                     if ( index( $line, $filename ) != -1 && index( $line, " $arch" ) != -1 &&
                         $line =~ m!@{[$xcodeApp||""]}/Contents/Developer/Toolchains/.*?\.xctoolchain.+?@{[
                                 $isSwift ? " -primary-file ": " -c "
                             ]}("$selectedFile"|\Q$escaped\E)! ) {
-                        $learnt .= ($learnt?';;':'').$line;
+                        $cdLine =~ s/^\s+|\s+$//g;
+                        $learnt .= ($learnt?';;':'').$cdLine." && ".$line;
                         if ( $learnt =~ / -filelist / ) {
                             while ( my $line = <LOG> ) {
                                 if ( my($filemap) = $line =~ / -output-file-map ([^ \\]+(?:\\ [^ \\]+)*) / ) {
@@ -371,9 +378,9 @@ my $obj = '';
 my $sdk = ($config =~ /-sdk (\w+)/)[0] || 'macosx';
 
 if ( $learnt ) {
-
+    my $mainPath =  getcwd;
     $obj = "$arch/injecting_class.o";
-    $learnt =~ s@( -o ).*$@$1$InjectionBundle/$obj@
+    $learnt =~ s@( -o ).*$@$1$mainPath/$InjectionBundle/$obj@
         or die "Could not locate object file in: $learnt";
     ###$learnt =~ s/( -DDEBUG\S* )/$1-DINJECTION_BUNDLE /;
 
