@@ -269,6 +269,7 @@ if ( !$learnt ) {
                                 $isSwift ? " -primary-file ": " -c "
                             ]}("$selectedFile"|\Q$escaped\E)! ) {
                         $cdLine =~ s/^\s+|\s+$//g;
+                        $line =~ s/&/\\&/g;
                         $learnt .= ($learnt?';;':'').$cdLine." && ".$line;
                         if ( $learnt =~ / -filelist / ) {
                             while ( my $line = <LOG> ) {
