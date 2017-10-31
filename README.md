@@ -7,6 +7,8 @@ Copyright (c) John Holdsworth 2012-16
 Injection for Xcode is an Xcode plugin (available via [Alcatraz](http://alcatraz.io/)) or [AppCode](#user-content-use-with-appcode) that 
 dynamically inserts new Swift / Objective-C code into a running app in order to speed up your build process. It does this without making _any_ changes to your project.
 
+An up-to-date overview by Rob Norback of [how to incorporate it into your workflow is here](https://medium.com/@robnorback/the-secret-to-1-second-compile-times-in-xcode-9de4ec8345a1)
+
 ![Injection Example](documentation/images/injected.gif)
 
 Announcements of major additions to the project will be made on twitter [@Injection4Xcode](https://twitter.com/@Injection4Xcode).
@@ -24,6 +26,8 @@ particularly good idea in Swift.
 ### Stop Stop Press
 
 Injection is now available as a standalone app rather than have to build the plugin which you can download [here](http://johnholdsworth.com/injection.html). As injection no longer works on the deivce due to sandboxing in iOS10 this is the recommended route going forward. For more information consult the [FAQ](https://johnno1962.github.io/InjectionApp/injectionfaq.html).
+
+For TDD, there is a interesting fork of the injection plugin you can download [here](https://github.com/polac24/injectionforxcode/tree/tdd). It runs all tests covering a source file each time you inject. It's on the 'tdd' branch.
 
 ## How to Use Injection for Xcode
 
@@ -113,6 +117,8 @@ for the changes which are injected into your project, it is recommended to add t
 * The injection key command can be customised from <kbd>ctrl</kbd>+<kbd>=</kbd> in the "Tunable App Parameters" panel.
 
 * Works on a device, if you apply a [patch to your project.](documentation/patching_injection.md).
+
+* Perform unit tests that cover your Swift class/struct/enum. For details see [TDD with Injection for Xcode](documentation/tdd.md)
 
 ## What Happens with Swift?
 
