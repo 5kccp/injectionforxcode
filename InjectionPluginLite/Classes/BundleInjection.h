@@ -1,5 +1,5 @@
 //
-//  $Id: //depot/injectionforxcode/InjectionPluginLite/Classes/BundleInjection.h#17 $
+//  $Id: //depot/injectionforxcode/InjectionPluginLite/Classes/BundleInjection.h#19 $
 //  Injection
 //
 //  Created by John Holdsworth on 16/01/2012.
@@ -231,6 +231,7 @@ static NSString *kPreviousInjections = @"INPreviousInjections";
 #ifndef ANDROID
 static NSNetServiceBrowser *browser;
 static NSNetService *service;
+static dispatch_queue_t testQueue;
 
 +(void)netServiceBrowser:(NSNetServiceBrowser *)aBrowser didFindService:(NSNetService *)aService moreComing:(BOOL)more {
     service = aService;
@@ -1092,7 +1093,8 @@ struct _in_objc_class { Class meta, supr; void *cache, *vtable; struct _in_objc_
     if ( referencesSection )
         dispatch_async(dispatch_get_main_queue(), ^{
             Class *classReferences = (Class *)(void *)((char *)info.dli_fbase+(uint64_t)referencesSection);
-
+            NSMutableArray *testClasses = [NSMutableArray array];
+            
             for ( unsigned long i=0 ; i<size/sizeof *classReferences ; i++ ) {
                 Class newClass = classReferences[i];
                 NSString *className = NSStringFromClass(newClass);
@@ -1110,14 +1112,40 @@ struct _in_objc_class { Class meta, supr; void *cache, *vtable; struct _in_objc_
                 }
 
                 if ( [newClass isSubclassOfClass:objc_getClass("XCTestCase")] ) {
-                    id suite0 = [[objc_getClass("XCTestSuite") alloc] initWithName:@"Injected"];
-                    id suite = [objc_getClass("XCTestSuite") testSuiteForTestCaseClass:newClass];
-                    id tr = [objc_getClass("XCTestSuiteRun") testRunWithTest:suite];
-                    [suite0 addTest:suite];
-                    [suite0 performTest:tr];
+                    [testClasses addObject:newClass];
                     if ( [newClass isSubclassOfClass:objc_getClass("QuickSpec")] )
                         [[objc_getClass("_TtC5Quick5World") sharedWorld]
                          setCurrentExampleMetadata:nil];
+                }
+
+            }
+            
+            if (testClasses.count){
+                void (^runTests)() = ^{
+                    for (Class newClass in testClasses) {
+                        id suite0 = [[objc_getClass("XCTestSuite") alloc] initWithName:@"Injected"];
+                        id suite = [objc_getClass("XCTestSuite") testSuiteForTestCaseClass:newClass];
+                        id tr = [objc_getClass("XCTestSuiteRun") testRunWithTest:suite];
+                        [suite0 addTest:suite];
+                        [suite0 performTest:tr];
+                    }
+                };
+
+                if ([UIDevice currentDevice].systemVersion.floatValue < 10.0)
+                    runTests();
+                else {
+                    if (!testQueue){
+                        testQueue = dispatch_queue_create("INTestQueue", NULL);
+                    }
+
+                    dispatch_async(testQueue, ^{
+                        dispatch_suspend(testQueue);
+                        NSTimer *timer = [NSTimer timerWithTimeInterval:0 repeats:NO block:^(NSTimer * _Nonnull timer) {
+                            runTests();
+                            dispatch_resume(testQueue);
+                        }];
+                        [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+                    });
                 }
             }
 

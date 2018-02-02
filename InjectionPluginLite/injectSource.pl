@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-#  $Id: //depot/injectionforxcode/InjectionPluginLite/injectSource.pl#18 $
+#  $Id: //depot/injectionforxcode/InjectionPluginLite/injectSource.pl#20 $
 #  Injection
 #
 #  Created by John Holdsworth on 16/01/2012.
@@ -268,7 +268,7 @@ if ( !$learnt ) {
                 my $requiresFileList = 0;
                 my @swiftcCommands = ();
                 my @unitTestsClangCommands = ();
-                my %copySwiftModuleCommands = {};
+                my %copySwiftModuleCommands = ();
                 my @resourcesToLink = ();
                 my $cdLine;
                 while ( my $line = <LOG> ) {
@@ -622,7 +622,7 @@ if ( $flags & $INJECTION_STORYBOARD ) {
 # Link all resources as symbolic link to a bundle 
 foreach my $resourceFullpath (@allResources) {
     my $copyCommand = "ln -sf $resourceFullpath \"$bundlePath\" || true";
-    0 == system $copyCommand;
+    system $copyCommand;
 }
 
 $identity = "-" if !$isDevice;
