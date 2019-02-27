@@ -916,7 +916,7 @@ struct _in_objc_class { Class meta, supr; void *cache, *vtable; struct _in_objc_
     for( i=0; i<mc; i++ ) {
         SEL sel = method_getName(methods[i]);
 
-        static char singletonPrefix[] = "shared";
+        static char singletonPrefix[] = "share";
         if ( which == '+' ?
             strncmp( sel_getName(sel), singletonPrefix, sizeof singletonPrefix-1 ) == 0 :
             [self dontSwizzleProperty:oldClass sel:sel] )
